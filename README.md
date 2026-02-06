@@ -107,11 +107,11 @@ make deploy
 🔗 URLS DE CONTRÔLE (cliquez ou copiez-collez dans votre navigateur)
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-▶️  START  : https://psychic-orbit-xxx-4566.app.github.dev/restapis/ioet26ozcx/prod/_user_request_/start
+▶️  START  : https://[...].app.github.dev/restapis/ioet26ozcx/prod/_user_request_/start
 
-⏹️  STOP   : https://psychic-orbit-xxx-4566.app.github.dev/restapis/ioet26ozcx/prod/_user_request_/stop
+⏹️  STOP   : https://[...].app.github.dev/restapis/ioet26ozcx/prod/_user_request_/stop
 
-ℹ️  STATUS : https://psychic-orbit-xxx-4566.app.github.dev/restapis/ioet26ozcx/prod/_user_request_/status
+ℹ️  STATUS : https://[...].app.github.dev/restapis/ioet26ozcx/prod/_user_request_/status
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 ```
