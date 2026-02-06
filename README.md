@@ -1,17 +1,10 @@
 # 🚀 API-DRIVEN INFRASTRUCTURE
 
-![GitHub](https://img.shields.io/badge/GitHub-Codespaces-blue)
-![LocalStack](https://img.shields.io/badge/LocalStack-AWS%20Emulator-orange)
-![Python](https://img.shields.io/badge/Python-3.9-green)
-![AWS](https://img.shields.io/badge/AWS-Lambda%20%7C%20API%20Gateway%20%7C%20EC2-yellow)
-
 > 🎯 **Architecture Cloud-Native permettant de piloter des instances EC2 via de simples URLs HTTP GET**
 
 ## 📖 Description
 
-Projet académique d'infrastructure API-driven démontrant l'orchestration de services AWS serverless (API Gateway + Lambda) pour contrôler dynamiquement des ressources d'infrastructure EC2, sans aucune console graphique. 
-
-**⚠️ Ce projet fonctionne UNIQUEMENT dans GitHub Codespaces** - Architecture conçue exclusivement pour l'environnement cloud de GitHub.
+Projet d'infrastructure API-driven démontrant l'orchestration de services AWS serverless (API Gateway + Lambda) pour contrôler dynamiquement des ressources d'infrastructure EC2, sans aucune console graphique. 
 
 ### Stack Technique
 
@@ -36,12 +29,12 @@ Projet académique d'infrastructure API-driven démontrant l'orchestration de se
 │  ┌────────────────────────────────────────────────────────┐ │
 │  │                     LocalStack                         │ │
 │  │                                                        │ │
-│  │  ┌──────────────┐    ┌─────────────┐    ┌──────────┐ │ │
-│  │  │ API Gateway  │───▶│   Lambda    │───▶│   EC2    │ │ │
-│  │  │   /start     │    │  Function   │    │ Instance │ │ │
-│  │  │   /stop      │    │  (Python)   │    │          │ │ │
-│  │  │   /status    │    │             │    │          │ │ │
-│  │  └──────────────┘    └─────────────┘    └──────────┘ │ │
+│  │  ┌──────────────┐    ┌─────────────┐    ┌──────────┐ │ │ │
+│  │  │ API Gateway  │───▶│   Lambda    │───▶│   EC2    │ │ │ │
+│  │  │   /start     │    │  Function   │    │ Instance │ │ │ │
+│  │  │   /stop      │    │  (Python)   │    │          │ │ │ │
+│  │  │   /status    │    │             │    │          │ │ │ │
+│  │  └──────────────┘    └─────────────┘    └──────────┘ │ │ │
 │  └────────────────────────────────────────────────────────┘ │
 └─────────────────────────────────────────────────────────────┘
 ```
