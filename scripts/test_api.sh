@@ -1,53 +1,62 @@
 #!/bin/bash
 
-# Charger les variables d'environnement
-if [ -f .env ]; then
-    source .env
-fi
-
-INSTANCE_ID=$(cat .instance_id 2>/dev/null)
-API_URL=$(cat .api_url 2>/dev/null)
-
-if [ -z "$INSTANCE_ID" ] || [ -z "$API_URL" ]; then
-    echo "❌ Configuration manquante. Exécutez 'make deploy' d'abord."
+if [ ! -f .url_status ]; then
+    echo "❌ Exécutez 'make deploy' d'abord"
     exit 1
 fi
 
-echo "🧪 Test de l'API EC2 Controller"
-echo "================================"
-echo "📍 Endpoint: $AWS_ENDPOINT"
-echo "🆔 Instance: $INSTANCE_ID"
-echo "🔗 API URL: $API_URL"
+# Charger les URLs
+URL_START=$(cat .url_start)
+URL_STOP=$(cat .url_stop)
+URL_STATUS=$(cat .url_status)
+
+echo "╔════════════════════════════════════════════════════════════════════════════╗"
+echo "║                🧪 TESTS DE L'API EC2 CONTROLLER                            ║"
+echo "╚════════════════════════════════════════════════════════════════════════════╝"
 echo ""
 
-echo "1️⃣  Test: Vérification du statut"
-curl -s -k -X POST "$API_URL" \
-    -H "Content-Type: application/json" \
-    -d "{\"action\": \"status\", \"instance_id\": \"$INSTANCE_ID\"}" \
-    | jq '.'
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "1️⃣  Test STATUS"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔗 URL : $URL_STATUS"
+echo ""
+curl -s -k "$URL_STATUS" | jq '.' || echo "❌ Erreur"
 
 echo ""
-echo "2️⃣  Test: Arrêt de l'instance"
-curl -s -k -X POST "$API_URL" \
-    -H "Content-Type: application/json" \
-    -d "{\"action\": \"stop\", \"instance_id\": \"$INSTANCE_ID\"}" \
-    | jq '.'
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "2️⃣  Test STOP"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔗 URL : $URL_STOP"
+echo ""
+curl -s -k "$URL_STOP" | jq '.' || echo "❌ Erreur"
 
+echo ""
+echo "⏳ Attente de 3 secondes..."
 sleep 3
 
 echo ""
-echo "3️⃣  Test: Vérification après arrêt"
-curl -s -k -X POST "$API_URL" \
-    -H "Content-Type: application/json" \
-    -d "{\"action\": \"status\", \"instance_id\": \"$INSTANCE_ID\"}" \
-    | jq '.'
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "3️⃣  Test STATUS (après STOP)"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔗 URL : $URL_STATUS"
+echo ""
+curl -s -k "$URL_STATUS" | jq '.' || echo "❌ Erreur"
 
 echo ""
-echo "4️⃣  Test: Redémarrage de l'instance"
-curl -s -k -X POST "$API_URL" \
-    -H "Content-Type: application/json" \
-    -d "{\"action\": \"start\", \"instance_id\": \"$INSTANCE_ID\"}" \
-    | jq '.'
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "4️⃣  Test START"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔗 URL : $URL_START"
+echo ""
+curl -s -k "$URL_START" | jq '.' || echo "❌ Erreur"
 
 echo ""
-echo "✅ Tests terminés"
+echo "╔════════════════════════════════════════════════════════════════════════════╗"
+echo "║                          ✅ TESTS TERMINÉS                                 ║"
+echo "╚════════════════════════════════════════════════════════════════════════════╝"
+echo ""
+echo "📋 Récapitulatif des URLs :"
+echo "   START  : $URL_START"
+echo "   STOP   : $URL_STOP"
+echo "   STATUS : $URL_STATUS"
+echo ""

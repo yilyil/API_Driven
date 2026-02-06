@@ -1,33 +1,37 @@
-.PHONY: help setup endpoint deploy start stop status test diagnose clean
+.PHONY: help setup deploy start stop status test diagnose clean urls
 
 help:
 	@echo "🚀 API-Driven Infrastructure - Commandes disponibles"
 	@echo ""
-	@echo "  make setup      - Installer et démarrer LocalStack"
-	@echo "  make deploy     - Déployer l'infrastructure complète"
+	@echo "  make setup      - Installer LocalStack et AWS CLI"
+	@echo "  make deploy     - Déployer l'infrastructure"
+	@echo "  make urls       - Afficher les 3 URLs de contrôle"
 	@echo "  make start      - Démarrer l'instance EC2"
 	@echo "  make stop       - Arrêter l'instance EC2"
-	@echo "  make status     - Vérifier le statut de l'instance"
-	@echo "  make test       - Tester l'API (4 tests automatiques)"
+	@echo "  make status     - Vérifier l'état de l'instance"
+	@echo "  make test       - Tester l'API (4 tests)"
 	@echo "  make diagnose   - Diagnostic complet"
-	@echo "  make clean      - Tout supprimer et repartir de zéro"
+	@echo "  make clean      - Tout supprimer"
 	@echo ""
 
 setup:
-	@echo "📦 Installation de LocalStack..."
+	@echo "📦 Installation de AWS CLI et LocalStack..."
+	@curl -s "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+	@unzip -q awscliv2.zip
+	@sudo ./aws/install --update 2>/dev/null || sudo ./aws/install
+	@rm -rf aws awscliv2.zip
 	@pip install --quiet --upgrade pip localstack awscli-local
 	@localstack start -d
 	@sleep 10
 	@localstack status services
 	@echo "✅ LocalStack démarré"
-	@echo ""
-	@echo "⚠️  IMPORTANT (Codespaces uniquement):"
-	@echo "    Rendez le port 4566 PUBLIC dans l'onglet PORTS"
 
 deploy:
-	@echo "🔨 Déploiement de l'infrastructure..."
 	@bash scripts/setup_endpoint.sh
 	@bash scripts/deploy.sh
+
+urls:
+	@bash show_urls.sh
 
 start:
 	@bash scripts/control_instance.sh start
@@ -46,8 +50,6 @@ diagnose:
 
 clean:
 	@echo "🧹 Nettoyage complet..."
-	@awslocal lambda delete-function --function-name ec2-controller 2>/dev/null || true
-	@awslocal ec2 terminate-instances --instance-ids $$(cat .instance_id 2>/dev/null) 2>/dev/null || true
-	@rm -f .instance_id .api_id .api_url .aws_endpoint .env my-key.pem lambda/*.zip 2>/dev/null || true
+	@rm -f .instance_id .api_id .api_url .url_* .aws_endpoint .env my-key.pem lambda/*.zip 2>/dev/null || true
 	@localstack stop 2>/dev/null || true
 	@echo "✅ Environnement nettoyé"

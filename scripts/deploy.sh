@@ -14,19 +14,13 @@ if [ -f .env ]; then
     source .env
     echo "✓ Variables d'environnement chargées"
 else
-    echo "❌ Fichier .env manquant. Exécutez d'abord: bash scripts/setup_endpoint.sh"
+    echo "❌ Fichier .env manquant"
     exit 1
 fi
 
 echo "📍 Endpoint AWS: $AWS_ENDPOINT"
 
-# Configurer AWS CLI pour utiliser l'endpoint
-export AWS_ACCESS_KEY_ID="test"
-export AWS_SECRET_ACCESS_KEY="test"
-export AWS_DEFAULT_REGION="us-east-1"
-export PYTHONHTTPSVERIFY=0
-
-# Test de connexion avec curl
+# Test de connexion
 echo ""
 echo "🔌 Test de connexion à LocalStack..."
 HEALTH_CHECK=$(curl -s -k "$AWS_ENDPOINT/_localstack/health" 2>/dev/null || echo "")
@@ -34,13 +28,10 @@ HEALTH_CHECK=$(curl -s -k "$AWS_ENDPOINT/_localstack/health" 2>/dev/null || echo
 if [ -z "$HEALTH_CHECK" ]; then
     echo "❌ Impossible de se connecter à LocalStack"
     echo ""
-    echo "Vérifiez que:"
-    echo "  1. LocalStack est démarré: make setup"
-    echo "  2. Le port 4566 est PUBLIC dans l'onglet PORTS de Codespaces"
-    echo "  3. Attendre 30 secondes après avoir rendu le port public"
-    echo ""
-    echo "Test manuel:"
-    echo "  curl -k $AWS_ENDPOINT/_localstack/health"
+    echo "Solutions possibles:"
+    echo "  1. Vérifiez que LocalStack est démarré: make setup"
+    echo "  2. Le port 4566 doit être PUBLIC"
+    echo "  3. Testez manuellement: curl -k $AWS_ENDPOINT/_localstack/health"
     exit 1
 fi
 
@@ -50,43 +41,33 @@ echo "✓ Connexion à LocalStack OK"
 echo ""
 echo "📦 Création de l'instance EC2..."
 
-# Créer Key Pair
-if [ -f my-key.pem ]; then
-    rm -f my-key.pem
-fi
+# Supprimer l'ancienne clé
+rm -f my-key.pem
 
-aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    ec2 create-key-pair \
+# Créer Key Pair
+awslocal ec2 create-key-pair \
     --key-name my-key \
     --query 'KeyMaterial' \
-    --output text > my-key.pem 2>/dev/null || echo "✓ Key pair existe déjà"
-
-if [ -f my-key.pem ]; then
-    chmod 400 my-key.pem
-    echo "✓ Key pair créée"
-fi
+    --output text > my-key.pem 2>/dev/null || echo "✓ Key pair existe"
+chmod 400 my-key.pem 2>/dev/null
 
 # Créer Security Group
-aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    ec2 create-security-group \
+awslocal ec2 create-security-group \
     --group-name my-sg \
-    --description "Security group for API-driven EC2" 2>/dev/null || echo "✓ Security group existe déjà"
+    --description "Security group" 2>/dev/null || echo "✓ Security group existe"
 
-# Vérifier si l'instance existe déjà
-EXISTING_INSTANCE=$(aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    ec2 describe-instances \
+# Vérifier instance existante
+EXISTING_INSTANCE=$(awslocal ec2 describe-instances \
     --filters "Name=tag:Name,Values=API-Driven-Instance" \
-              "Name=instance-state-name,Values=running,stopped,pending" \
     --query 'Reservations[0].Instances[0].InstanceId' \
     --output text 2>/dev/null || echo "None")
 
 if [ "$EXISTING_INSTANCE" != "None" ] && [ -n "$EXISTING_INSTANCE" ] && [ "$EXISTING_INSTANCE" != "null" ]; then
-    echo "✓ Instance existante trouvée: $EXISTING_INSTANCE"
     export INSTANCE_ID="$EXISTING_INSTANCE"
+    echo "✓ Instance existante: $INSTANCE_ID"
 else
     echo "→ Création d'une nouvelle instance..."
-    aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-        ec2 run-instances \
+    awslocal ec2 run-instances \
         --image-id ami-ff0fea8310f3 \
         --count 1 \
         --instance-type t2.micro \
@@ -96,8 +77,7 @@ else
     
     sleep 2
     
-    export INSTANCE_ID=$(aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-        ec2 describe-instances \
+    export INSTANCE_ID=$(awslocal ec2 describe-instances \
         --filters "Name=tag:Name,Values=API-Driven-Instance" \
         --query 'Reservations[0].Instances[0].InstanceId' \
         --output text)
@@ -106,40 +86,31 @@ fi
 echo "✓ Instance ID: $INSTANCE_ID"
 echo "$INSTANCE_ID" > .instance_id
 
-# 2. Création de la fonction Lambda
+# 2. Fonction Lambda
 echo ""
 echo "⚡ Création de la fonction Lambda..."
 cd lambda
-
-# Créer le zip
-if [ -f lambda_function.zip ]; then
-    rm lambda_function.zip
-fi
+rm -f lambda_function.zip
 zip -q lambda_function.zip lambda_function.py
-echo "✓ Package Lambda créé"
 
-# Créer le rôle IAM
-aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    iam create-role \
+# Créer rôle IAM
+awslocal iam create-role \
     --role-name lambda-ec2-role \
-    --assume-role-policy-document file://../policies/trust-policy.json > /dev/null 2>&1 || echo "✓ Rôle IAM existe déjà"
+    --assume-role-policy-document file://../policies/trust-policy.json > /dev/null 2>&1 || true
 
-# Attacher la politique
-aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    iam put-role-policy \
+awslocal iam put-role-policy \
     --role-name lambda-ec2-role \
     --policy-name EC2Access \
     --policy-document file://../policies/ec2-policy.json > /dev/null
-echo "✓ Politique attachée"
 
-# Créer ou mettre à jour la fonction Lambda
-LAMBDA_EXISTS=$(aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    lambda get-function \
-    --function-name ec2-controller 2>/dev/null || echo "")
-
-if [ -z "$LAMBDA_EXISTS" ]; then
-    aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-        lambda create-function \
+# Créer/mettre à jour Lambda
+if awslocal lambda get-function --function-name ec2-controller &>/dev/null; then
+    awslocal lambda update-function-code \
+        --function-name ec2-controller \
+        --zip-file fileb://lambda_function.zip > /dev/null
+    echo "✓ Lambda mise à jour"
+else
+    awslocal lambda create-function \
         --function-name ec2-controller \
         --runtime python3.9 \
         --role arn:aws:iam::000000000000:role/lambda-ec2-role \
@@ -148,116 +119,128 @@ if [ -z "$LAMBDA_EXISTS" ]; then
         --environment Variables="{INSTANCE_ID=$INSTANCE_ID,AWS_ENDPOINT=$AWS_ENDPOINT}" \
         --timeout 30 > /dev/null
     echo "✓ Lambda créée"
-else
-    aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-        lambda update-function-code \
-        --function-name ec2-controller \
-        --zip-file fileb://lambda_function.zip > /dev/null
-    echo "✓ Code Lambda mis à jour"
 fi
 
-# Mettre à jour les variables d'environnement
-aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    lambda update-function-configuration \
+awslocal lambda update-function-configuration \
     --function-name ec2-controller \
     --environment Variables="{INSTANCE_ID=$INSTANCE_ID,AWS_ENDPOINT=$AWS_ENDPOINT}" > /dev/null
-echo "✓ Variables d'environnement Lambda configurées"
 
 cd ..
 
-# 3. Création de l'API Gateway
+# 3. API Gateway avec 3 endpoints GET
 echo ""
 echo "🌐 Création de l'API Gateway..."
 
-# Vérifier si l'API existe
-EXISTING_API=$(aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    apigateway get-rest-apis \
+# Créer ou récupérer l'API
+EXISTING_API=$(awslocal apigateway get-rest-apis \
     --query "items[?name=='EC2-Controller-API'].id" \
     --output text 2>/dev/null || echo "")
 
-if [ -n "$EXISTING_API" ] && [ "$EXISTING_API" != "None" ] && [ "$EXISTING_API" != "null" ]; then
-    echo "✓ API existante trouvée: $EXISTING_API"
+if [ -n "$EXISTING_API" ] && [ "$EXISTING_API" != "None" ]; then
     export API_ID="$EXISTING_API"
+    echo "✓ API existante: $API_ID"
 else
-    echo "→ Création d'une nouvelle API..."
-    export API_ID=$(aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-        apigateway create-rest-api \
+    export API_ID=$(awslocal apigateway create-rest-api \
         --name 'EC2-Controller-API' \
-        --description 'API to control EC2 instances' \
         --query 'id' \
         --output text)
+    echo "✓ API créée: $API_ID"
 fi
 
-echo "✓ API ID: $API_ID"
 echo "$API_ID" > .api_id
 
-# Récupérer le root resource
-export ROOT_ID=$(aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    apigateway get-resources \
+# Récupérer root resource
+export ROOT_ID=$(awslocal apigateway get-resources \
     --rest-api-id $API_ID \
     --query 'items[0].id' \
     --output text)
 
-# Créer ou récupérer la ressource /ec2
-EXISTING_RESOURCE=$(aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    apigateway get-resources \
-    --rest-api-id $API_ID \
-    --query "items[?pathPart=='ec2'].id" \
-    --output text 2>/dev/null || echo "")
-
-if [ -n "$EXISTING_RESOURCE" ] && [ "$EXISTING_RESOURCE" != "None" ] && [ "$EXISTING_RESOURCE" != "null" ]; then
-    export RESOURCE_ID="$EXISTING_RESOURCE"
-    echo "✓ Ressource /ec2 existe déjà"
-else
-    export RESOURCE_ID=$(aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-        apigateway create-resource \
+# Fonction pour créer un endpoint GET
+create_endpoint() {
+    local ACTION=$1
+    
+    # Créer ressource
+    RESOURCE_ID=$(awslocal apigateway get-resources \
         --rest-api-id $API_ID \
-        --parent-id $ROOT_ID \
-        --path-part ec2 \
-        --query 'id' \
-        --output text)
-    echo "✓ Ressource /ec2 créée"
-fi
+        --query "items[?pathPart=='$ACTION'].id" \
+        --output text 2>/dev/null || echo "")
+    
+    if [ -z "$RESOURCE_ID" ] || [ "$RESOURCE_ID" == "None" ]; then
+        RESOURCE_ID=$(awslocal apigateway create-resource \
+            --rest-api-id $API_ID \
+            --parent-id $ROOT_ID \
+            --path-part $ACTION \
+            --query 'id' \
+            --output text)
+    fi
+    
+    # Créer méthode GET
+    awslocal apigateway put-method \
+        --rest-api-id $API_ID \
+        --resource-id $RESOURCE_ID \
+        --http-method GET \
+        --authorization-type NONE \
+        --request-parameters method.request.querystring.instance_id=false > /dev/null 2>&1 || true
+    
+    # Intégration Lambda
+    awslocal apigateway put-integration \
+        --rest-api-id $API_ID \
+        --resource-id $RESOURCE_ID \
+        --http-method GET \
+        --type AWS_PROXY \
+        --integration-http-method POST \
+        --uri arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:000000000000:function:ec2-controller/invocations > /dev/null 2>&1
+    
+    echo "✓ Endpoint /$ACTION créé"
+}
 
-# Configurer la méthode POST
-aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    apigateway put-method \
-    --rest-api-id $API_ID \
-    --resource-id $RESOURCE_ID \
-    --http-method POST \
-    --authorization-type NONE > /dev/null 2>&1 || echo "✓ Méthode POST existe déjà"
-
-# Intégrer avec Lambda
-aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    apigateway put-integration \
-    --rest-api-id $API_ID \
-    --resource-id $RESOURCE_ID \
-    --http-method POST \
-    --type AWS_PROXY \
-    --integration-http-method POST \
-    --uri arn:aws:apigateway:us-east-1:lambda:path/2015-03-31/functions/arn:aws:lambda:us-east-1:000000000000:function:ec2-controller/invocations > /dev/null 2>&1
-
-echo "✓ Intégration Lambda configurée"
+# Créer les 3 endpoints
+create_endpoint "start"
+create_endpoint "stop"
+create_endpoint "status"
 
 # Déployer l'API
-aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl \
-    apigateway create-deployment \
+awslocal apigateway create-deployment \
     --rest-api-id $API_ID \
     --stage-name prod > /dev/null 2>&1
+
 echo "✓ API déployée sur le stage 'prod'"
 
-# Construire l'URL de l'API
-export API_URL="${AWS_ENDPOINT}/restapis/$API_ID/prod/_user_request_/ec2"
-echo "$API_URL" > .api_url
+# Construire les URLs complètes
+BASE_URL="${AWS_ENDPOINT}/restapis/$API_ID/prod/_user_request_"
+URL_START="${BASE_URL}/start"
+URL_STOP="${BASE_URL}/stop"
+URL_STATUS="${BASE_URL}/status"
 
+# Sauvegarder les URLs dans des fichiers séparés
+echo "$BASE_URL" > .api_url
+echo "$URL_START" > .url_start
+echo "$URL_STOP" > .url_stop
+echo "$URL_STATUS" > .url_status
+
+# Affichage final
 echo ""
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
-echo "✅ DÉPLOIEMENT TERMINÉ !"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "╔════════════════════════════════════════════════════════════════════════════╗"
+echo "║                     ✅ DÉPLOIEMENT TERMINÉ !                               ║"
+echo "╚════════════════════════════════════════════════════════════════════════════╝"
 echo ""
-echo "📍 Endpoint AWS: $AWS_ENDPOINT"
-echo "🆔 Instance ID: $INSTANCE_ID"
-echo "🔗 API URL: $API_URL"
+echo "📍 Endpoint AWS : $AWS_ENDPOINT"
+echo "🆔 Instance ID  : $INSTANCE_ID"
+echo "🔑 API ID       : $API_ID"
 echo ""
-echo "💡 Pour tester: make test"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "🔗 URLS DE CONTRÔLE (cliquez ou copiez-collez dans votre navigateur)"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "▶️  START  : $URL_START"
+echo ""
+echo "⏹️  STOP   : $URL_STOP"
+echo ""
+echo "ℹ️  STATUS : $URL_STATUS"
+echo ""
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
+echo "💡 Test rapide : curl -k $URL_STATUS"
+echo ""
+echo "📖 Documentation : cat README.md"
+echo ""

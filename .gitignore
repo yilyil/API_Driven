@@ -14,6 +14,9 @@ my-key.pem
 .instance_id
 .api_id
 .api_url
+.url_start
+.url_stop
+.url_status
 .aws_endpoint
 .env
 response.json
