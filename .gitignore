@@ -1,0 +1,44 @@
+# LocalStack
+rep_localstack/
+.localstack/
+volume/
+
+# Lambda
+lambda/*.zip
+lambda/__pycache__/
+*.pyc
+
+# AWS & Config
+my-key.pem
+.aws/
+.instance_id
+.api_id
+.api_url
+.aws_endpoint
+.env
+response.json
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+env/
+venv/
+ENV/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
