@@ -1,52 +1,57 @@
 #!/bin/bash
 set -e
 
-echo "🚀 Déploiement de l'infrastructure API-Driven (Version corrigée)"
+echo "🚀 Déploiement de l'infrastructure API-Driven (GitHub Codespaces)"
+
+# Vérifier qu'on est dans Codespaces
+if [ -z "$CODESPACE_NAME" ]; then
+    echo "❌ ERREUR: Ce projet fonctionne UNIQUEMENT dans GitHub Codespaces"
+    exit 1
+fi
 
 # Charger les variables d'environnement
 if [ -f .env ]; then
     source .env
-
-# Correction du chemin AWS et du SSL pour Codespaces
-function awslocal() {
-  aws --endpoint-url="$AWS_ENDPOINT" --no-verify-ssl "$@"
-}
-export -f awslocal
-export PYTHONHTTPSVERIFY=0
     echo "✓ Variables d'environnement chargées"
 else
-    echo "❌ Fichier .env manquant. Exécutez d'abord: scripts/setup_endpoint.sh"
+    echo "❌ Fichier .env manquant. Exécutez d'abord: bash scripts/setup_endpoint.sh"
     exit 1
 fi
 
 echo "📍 Endpoint AWS: $AWS_ENDPOINT"
 
-# Configuration AWS pour awslocal
-export AWS_ENDPOINT_URL="$AWS_ENDPOINT"
-
-# S'assurer qu'awslocal fonctionne
-if ! command -v awslocal &> /dev/null; then
-    echo "❌ awslocal n'est pas installé. Installation..."
-    pip install --quiet awscli-local
-fi
+# Fonction wrapper pour awslocal
+awslocal() {
+    aws --endpoint-url="$AWS_ENDPOINT" \
+        --no-verify-ssl \
+        "$@"
+}
+export -f awslocal
+export PYTHONHTTPSVERIFY=0
 
 # Test de connexion
+echo ""
 echo "🔌 Test de connexion à LocalStack..."
-if awslocal ec2 describe-regions --no-verify-ssl --output text > /dev/null 2>&1; then
-    echo "✓ Connexion à LocalStack OK"
-else
+if ! awslocal ec2 describe-regions --output text > /dev/null 2>&1; then
     echo "❌ Impossible de se connecter à LocalStack"
+    echo ""
     echo "Vérifiez que:"
-    echo "  1. LocalStack est démarré (make setup)"
-    echo "  2. Le port 4566 est public dans Codespaces"
+    echo "  1. LocalStack est démarré: make setup"
+    echo "  2. Le port 4566 est PUBLIC dans l'onglet PORTS de Codespaces"
+    echo "  3. Attendre 10-15 secondes après avoir rendu le port public"
     exit 1
 fi
+echo "✓ Connexion à LocalStack OK"
 
 # 1. Création de l'instance EC2
 echo ""
 echo "📦 Création de l'instance EC2..."
 
 # Créer Key Pair
+if [ -f my-key.pem ]; then
+    rm -f my-key.pem
+fi
+
 if ! awslocal ec2 describe-key-pairs --key-names my-key &> /dev/null; then
     awslocal ec2 create-key-pair \
         --key-name my-key \
@@ -143,13 +148,14 @@ else
     awslocal lambda update-function-code \
         --function-name ec2-controller \
         --zip-file fileb://lambda_function.zip > /dev/null
-    echo "✓ Lambda mise à jour"
+    echo "✓ Code Lambda mis à jour"
 fi
 
 # Mettre à jour les variables d'environnement
 awslocal lambda update-function-configuration \
     --function-name ec2-controller \
     --environment Variables="{INSTANCE_ID=$INSTANCE_ID,AWS_ENDPOINT=$AWS_ENDPOINT}" > /dev/null
+echo "✓ Variables d'environnement Lambda configurées"
 
 cd ..
 
@@ -224,23 +230,20 @@ echo "✓ Intégration Lambda configurée"
 awslocal apigateway create-deployment \
     --rest-api-id $API_ID \
     --stage-name prod > /dev/null 2>&1
-echo "✓ API déployée"
+echo "✓ API déployée sur le stage 'prod'"
 
-# Construire l'URL de l'API
-if [[ $AWS_ENDPOINT == http://localhost:4566 ]]; then
-    export API_URL="http://localhost:4566/restapis/$API_ID/prod/_user_request_/ec2"
-else
-    export API_URL="${AWS_ENDPOINT}/restapis/$API_ID/prod/_user_request_/ec2"
-fi
-
+# Construire l'URL de l'API (toujours avec l'endpoint Codespace)
+export API_URL="${AWS_ENDPOINT}/restapis/$API_ID/prod/_user_request_/ec2"
 echo "$API_URL" > .api_url
 
 echo ""
-echo "✅ Déploiement terminé!"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo "✅ DÉPLOIEMENT TERMINÉ !"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
+echo ""
 echo "📍 Endpoint AWS: $AWS_ENDPOINT"
 echo "🆔 Instance ID: $INSTANCE_ID"
 echo "🔗 API URL: $API_URL"
-echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
 echo ""
-echo "💡 Pour tester : make test"
+echo "💡 Pour tester: make test"
+echo "━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━"
