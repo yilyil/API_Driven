@@ -99,7 +99,7 @@ make deploy
 ║                     ✅ DÉPLOIEMENT TERMINÉ !                               ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 
-📍 Endpoint AWS : https://xxx-xxx-4566.app.github.dev
+📍 Endpoint AWS : https://xxx-xxx-xxx.app.github.dev
 🆔 Instance ID  : i-xxx
 🔑 API ID       : xxx
 
