@@ -1,34 +1,53 @@
 #!/bin/bash
 
-# Charger l'environnement
-source .env 2>/dev/null || { echo "❌ Erreur: Fichier .env manquant"; exit 1; }
-API_ID=$(cat .api_id 2>/dev/null)
-API_URL="${AWS_ENDPOINT}/restapis/${API_ID}/prod/_user_request_/ec2"
+# Charger les variables d'environnement
+if [ -f .env ]; then
+    source .env
+fi
 
-echo "🧪 Test de l'API API-Driven..."
-echo "🔗 URL: $API_URL"
-echo "------------------------------------"
+INSTANCE_ID=$(cat .instance_id 2>/dev/null)
+API_URL=$(cat .api_url 2>/dev/null)
 
-function call_api() {
-    local action=$1
-    echo "▶️  Action: $action"
-    
-    # Appel curl avec -k (insecure) et silence pour les warnings urllib3
-    response=$(curl -s -k -X POST "$API_URL" \
-        -H "Content-Type: application/json" \
-        -d "{\"action\": \"$action\"}")
-    
-    echo "📩 Réponse: $response"
-    echo ""
-}
+if [ -z "$INSTANCE_ID" ] || [ -z "$API_URL" ]; then
+    echo "❌ Configuration manquante. Exécutez 'make deploy' d'abord."
+    exit 1
+fi
 
-# Séquence de tests
-call_api "status"
-sleep 2
-call_api "stop"
-sleep 5
-call_api "status"
-sleep 2
-call_api "start"
+echo "🧪 Test de l'API EC2 Controller"
+echo "================================"
+echo "📍 Endpoint: $AWS_ENDPOINT"
+echo "🆔 Instance: $INSTANCE_ID"
+echo "🔗 API URL: $API_URL"
+echo ""
 
-echo "✅ Tests terminés !"
+echo "1️⃣  Test: Vérification du statut"
+curl -s -k -X POST "$API_URL" \
+    -H "Content-Type: application/json" \
+    -d "{\"action\": \"status\", \"instance_id\": \"$INSTANCE_ID\"}" \
+    | jq '.'
+
+echo ""
+echo "2️⃣  Test: Arrêt de l'instance"
+curl -s -k -X POST "$API_URL" \
+    -H "Content-Type: application/json" \
+    -d "{\"action\": \"stop\", \"instance_id\": \"$INSTANCE_ID\"}" \
+    | jq '.'
+
+sleep 3
+
+echo ""
+echo "3️⃣  Test: Vérification après arrêt"
+curl -s -k -X POST "$API_URL" \
+    -H "Content-Type: application/json" \
+    -d "{\"action\": \"status\", \"instance_id\": \"$INSTANCE_ID\"}" \
+    | jq '.'
+
+echo ""
+echo "4️⃣  Test: Redémarrage de l'instance"
+curl -s -k -X POST "$API_URL" \
+    -H "Content-Type: application/json" \
+    -d "{\"action\": \"start\", \"instance_id\": \"$INSTANCE_ID\"}" \
+    | jq '.'
+
+echo ""
+echo "✅ Tests terminés"

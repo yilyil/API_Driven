@@ -21,5 +21,4 @@ echo ""
 curl -X POST "$API_URL" \
     -H "Content-Type: application/json" \
     -d "{\"action\": \"$ACTION\", \"instance_id\": \"$INSTANCE_ID\"}" \
-    --insecure \
-    | jq '.'
+    -k -s | jq '.'
