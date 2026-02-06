@@ -22,10 +22,10 @@ Architecture **Cloud-Native** permettant de contrôler des instances EC2 via une
 │  (cURL)     │◀─────│   (REST)     │◀─────│  Function   │◀─────│ Instance │
 └─────────────┘      └──────────────┘      └─────────────┘      └──────────┘
                               │
-                    ┌─────────▼─────────┐
-                    │   LocalStack      │
+                    ┌─────────▼───────────┐
+                    │   LocalStack        │
                     │ (Endpoint Dynamique)│
-                    └───────────────────┘
+                    └─────────────────────┘
 ```
 
 **Flux :**
