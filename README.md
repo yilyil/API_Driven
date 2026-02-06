@@ -185,10 +185,10 @@ make test
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1️⃣  Test STATUS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔗 URL : https://xxx-4566.app.github.dev/restapis/abc123/prod/_user_request_/status
+🔗 URL : https://xxx-xxx.app.github.dev/restapis/abc123/prod/_user_request_/status
 
 {
-  "message": "Instance i-abc123 status: running",
+  "message": "Instance i-xxx status: running",
   "instance_id": "i-abc123",
   "action": "status"
 }
@@ -196,11 +196,11 @@ make test
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 2️⃣  Test STOP
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔗 URL : https://xxx-4566.app.github.dev/restapis/abc123/prod/_user_request_/stop
+🔗 URL : https://xxx-xxx.app.github.dev/restapis/abc123/prod/_user_request_/stop
 
 {
   "message": "Instance i-abc123 is stopping",
-  "instance_id": "i-abc123",
+  "instance_id": "i-xxx",
   "action": "stop"
 }
 
@@ -211,8 +211,8 @@ make test
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 {
-  "message": "Instance i-abc123 status: stopped",
-  "instance_id": "i-abc123",
+  "message": "Instance i-xxx status: stopped",
+  "instance_id": "i-xxx",
   "action": "status"
 }
 
