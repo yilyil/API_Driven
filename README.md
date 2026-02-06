@@ -129,8 +129,8 @@ Ouvrez directement les URLs dans votre navigateur. Pas besoin de Postman ou d'ou
 1. Copiez l'URL STATUS et ouvrez-la dans un nouvel onglet
 2. Vous verrez une réponse JSON comme :
    {
-     "message": "Instance i-abc123def456 status: running",
-     "instance_id": "i-abc123def456",
+     "message": "Instance i-xxx status: running",
+     "instance_id": "i-xxx",
      "action": "status"
    }
 ```
@@ -185,21 +185,21 @@ make test
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 1️⃣  Test STATUS
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔗 URL : https://xxx-xxx.app.github.dev/restapis/abc123/prod/_user_request_/status
+🔗 URL : https://xxx-xxx.app.github.dev/restapis/xxx/prod/_user_request_/status
 
 {
   "message": "Instance i-xxx status: running",
-  "instance_id": "i-abc123",
+  "instance_id": "i-xxx",
   "action": "status"
 }
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 2️⃣  Test STOP
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
-🔗 URL : https://xxx-xxx.app.github.dev/restapis/abc123/prod/_user_request_/stop
+🔗 URL : https://xxx-xxx.app.github.dev/restapis/xxx/prod/_user_request_/stop
 
 {
-  "message": "Instance i-abc123 is stopping",
+  "message": "Instance i-xxx is stopping",
   "instance_id": "i-xxx",
   "action": "stop"
 }
@@ -221,8 +221,8 @@ make test
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 {
-  "message": "Instance i-abc123 is starting",
-  "instance_id": "i-abc123",
+  "message": "Instance i-xxx is starting",
+  "instance_id": "i-xxx",
   "action": "start"
 }
 
