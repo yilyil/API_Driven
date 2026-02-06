@@ -5,11 +5,23 @@ import os
 def lambda_handler(event, context):
     """
     Fonction Lambda pour démarrer ou arrêter une instance EC2
-    Compatible avec LocalStack via endpoint dynamique
+    Compatible avec LocalStack via endpoint dynamique - SANS FALLBACK LOCALHOST
     """
     
-    # Récupérer l'endpoint AWS (localhost ou URL publique Codespace)
-    aws_endpoint = os.environ.get('AWS_ENDPOINT', 'http://localhost:4566')
+    # Récupérer l'endpoint AWS - OBLIGATOIRE, pas de fallback
+    aws_endpoint = os.environ.get('AWS_ENDPOINT')
+    
+    if not aws_endpoint:
+        return {
+            'statusCode': 500,
+            'headers': {
+                'Content-Type': 'application/json',
+                'Access-Control-Allow-Origin': '*'
+            },
+            'body': json.dumps({
+                'error': 'AWS_ENDPOINT not configured in Lambda environment variables'
+            })
+        }
     
     # Initialisation du client EC2 avec endpoint dynamique
     ec2 = boto3.client(
