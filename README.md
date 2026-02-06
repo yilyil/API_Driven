@@ -67,7 +67,7 @@ Projet académique d'infrastructure API-driven démontrant l'orchestration de se
 
 #### Étape 1 : Créer un Codespace
 
-1. Aller sur **[https://github.com/yilyil/API_Driven](https://github.com/yilyil/API_Driven)**
+1. Aller sur **[https://github.com/[...]/API_Driven](https://github.com/[...]/API_Driven)**
 2. Cliquer sur **Code** > **Codespaces** > **Create codespace on main**
 3. Attendre l'ouverture de VS Code dans le navigateur (≈ 30 secondes)
 
@@ -536,87 +536,6 @@ Requête GET /start
 
 ---
 
-## 👥 Auteur
-
-**Yilizire**  
-M2 Security & Networks - EFREI Paris  
-Spécialisation : Cybersécurité & Infrastructure Cloud-Native
-
-**Projet Académique :** Atelier API-Driven Infrastructure  
-**Date :** Février 2025  
-**Environnement :** GitHub Codespaces uniquement
-
----
-
-## 🎯 Grille d'Évaluation (20 points)
-
-| Critère | Points | Statut | Justification |
-|---------|--------|--------|---------------|
-| **Repository exécutable sans erreur** | 4/4 | ✅ | `make setup && make deploy` fonctionne sans intervention |
-| **Fonctionnement conforme au scénario** | 4/4 | ✅ | 3 URLs GET opérationnelles (start/stop/status) |
-| **Degré d'automatisation** | 4/4 | ✅ | Makefile + scripts + installation auto AWS CLI + port auto |
-| **Qualité du README** | 4/4 | ✅ | Documentation complète avec architecture, troubleshooting, exemples |
-| **Processus de travail** | 4/4 | ✅ | Commits cohérents, historique Git propre, pas d'interventions externes |
-
-**Total : 20/20** 🎉
-
----
-
-## 🌟 Points Forts du Projet
-
-### 1. 🚀 **Simplicité d'Utilisation**
-- URLs GET ouvrables directement dans le navigateur
-- Pas besoin d'outils HTTP complexes (Postman, etc.)
-- Démonstration visuelle immédiate du fonctionnement
-
-### 2. 🎯 **Conformité Stricte au Sujet**
-- Architecture API-driven pure
-- GitHub Codespaces uniquement (comme demandé)
-- LocalStack pour émulation AWS
-- Aucune console graphique utilisée
-
-### 3. ⚙️ **Automatisation Complète**
-- Installation d'AWS CLI automatique
-- Configuration du port public automatique
-- Une seule commande : `make deploy`
-- Déploiement idempotent (relançable sans erreur)
-- Tests automatiques intégrés
-
-### 4. 🛡️ **Robustesse**
-- Gestion d'erreurs exhaustive avec messages clairs
-- Vérification de l'existence des ressources avant création
-- Messages d'erreur explicites avec suggestions de solutions
-- Script de diagnostic intégré
-
-### 5. 📖 **Documentation Professionnelle**
-- README détaillé avec exemples concrets
-- Troubleshooting complet avec solutions
-- Explication des concepts techniques
-- Diagrammes d'architecture clairs
-
-### 6. 🔧 **Innovation Technique**
-- Zéro dépendance localhost (100% cloud-native)
-- Port public automatique via `gh` CLI
-- API GET simple et intuitive
-- Détection automatique de l'environnement
-
----
-
-## 💡 Exemple d'URLs Finales
-
-Après le déploiement, vous obtiendrez 3 URLs au format suivant :
-```
-https://psychic-orbit-wqgx95qp6wx2gq46-4566.app.github.dev/restapis/ioet26ozcx/prod/_user_request_/start
-
-https://psychic-orbit-wqgx95qp6wx2gq46-4566.app.github.dev/restapis/ioet26ozcx/prod/_user_request_/stop
-
-https://psychic-orbit-wqgx95qp6wx2gq46-4566.app.github.dev/restapis/ioet26ozcx/prod/_user_request_/status
-```
-
-**🎉 Copiez-collez ces URLs dans votre navigateur pour contrôler l'instance EC2 !**
-
----
-
 ## 📝 Commandes Rapides
 ```bash
 # Installation et déploiement complet
@@ -640,24 +559,7 @@ make clean && make setup && make deploy
 
 ---
 
-## 📄 Licence
-
-Projet éducatif réalisé dans le cadre de la formation M2 Security & Networks à l'EFREI Paris - 2025.
-
----
-
-## 🔗 Repository GitHub
-
-**[https://github.com/yilyil/API_Driven](https://github.com/yilyil/API_Driven)**
-
----
-
 <div align="center">
-
-**Made with ❤️ by Yilizire**  
-*EFREI Paris - M2 Security & Networks - 2025*
-
-**100% Cloud-Native Architecture**
 
 [![GitHub](https://img.shields.io/badge/GitHub-yilyil-blue?style=flat&logo=github)](https://github.com/yilyil/API_Driven)
 [![Codespaces](https://img.shields.io/badge/Codespaces-Ready-green?style=flat&logo=github)](https://github.com/yilyil/API_Driven)
