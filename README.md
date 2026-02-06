@@ -99,9 +99,9 @@ make deploy
 ║                     ✅ DÉPLOIEMENT TERMINÉ !                               ║
 ╚════════════════════════════════════════════════════════════════════════════╝
 
-📍 Endpoint AWS : https://psychic-orbit-xxx-4566.app.github.dev
-🆔 Instance ID  : i-abc123def456
-🔑 API ID       : ioet26ozcx
+📍 Endpoint AWS : https://xxx-xxx-4566.app.github.dev
+🆔 Instance ID  : i-xxx
+🔑 API ID       : xxx
 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 🔗 URLS DE CONTRÔLE (cliquez ou copiez-collez dans votre navigateur)
